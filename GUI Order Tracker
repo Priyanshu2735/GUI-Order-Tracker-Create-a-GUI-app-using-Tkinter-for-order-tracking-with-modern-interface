@@ -1,0 +1,93 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+from datetime import datetime
+
+class OrderTrackerApp:
+    def __init__(self, root):   # fixed __init__
+        self.root = root
+        self.root.title("Order Tracker")
+        self.root.geometry("900x550")
+        self.root.configure(bg="#f4f4f4")
+
+        title_label = tk.Label(root, text="Order Tracker", font=("Helvetica", 20, "bold"), bg="#f4f4f4", fg="#333")
+        title_label.pack(pady=10)
+
+        form_frame = tk.Frame(root, bg="#ffffff", bd=1, relief="solid")
+        form_frame.pack(pady=10, padx=10, fill="x")
+
+        tk.Label(form_frame, text="Order ID:", bg="#ffffff").grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        self.order_id_entry = tk.Entry(form_frame)
+        self.order_id_entry.grid(row=0, column=1, padx=10, pady=5)
+
+        tk.Label(form_frame, text="Customer Name:", bg="#ffffff").grid(row=0, column=2, padx=10, pady=5, sticky="w")
+        self.customer_name_entry = tk.Entry(form_frame)
+        self.customer_name_entry.grid(row=0, column=3, padx=10, pady=5)
+
+        tk.Label(form_frame, text="Status:", bg="#ffffff").grid(row=1, column=0, padx=10, pady=5, sticky="w")
+        self.status_combobox = ttk.Combobox(form_frame, values=["Pending", "Shipped", "Delivered", "Cancelled"])
+        self.status_combobox.grid(row=1, column=1, padx=10, pady=5)
+        self.status_combobox.current(0)
+
+        add_button = tk.Button(form_frame, text="Add Order", command=self.add_order, bg="#4CAF50", fg="white", relief="flat", padx=10)
+        add_button.grid(row=1, column=3, pady=5, sticky="e")
+
+        update_button = tk.Button(form_frame, text="Update Status", command=self.update_status, bg="#2196F3", fg="white", relief="flat", padx=10)
+        update_button.grid(row=1, column=4, pady=5, padx=10)
+
+        delete_button = tk.Button(form_frame, text="Delete Order", command=self.delete_order, bg="#f44336", fg="white", relief="flat", padx=10)
+        delete_button.grid(row=1, column=5, pady=5, padx=10)
+
+        self.tree = ttk.Treeview(root, columns=("OrderID", "Customer", "Status", "Date"), show="headings")
+        self.tree.heading("OrderID", text="Order ID")
+        self.tree.heading("Customer", text="Customer Name")
+        self.tree.heading("Status", text="Status")
+        self.tree.heading("Date", text="Date")
+        self.tree.pack(fill="both", expand=True, padx=10, pady=10)
+
+        style = ttk.Style()
+        style.configure("Treeview.Heading", font=("Helvetica", 12, "bold"))
+        style.configure("Treeview", font=("Helvetica", 11))
+
+    def add_order(self):
+        order_id = self.order_id_entry.get().strip()
+        customer_name = self.customer_name_entry.get().strip()
+        status = self.status_combobox.get()
+        date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        if not order_id or not customer_name:
+            messagebox.showerror("Input Error", "Please fill all fields")
+            return
+
+        self.tree.insert("", "end", values=(order_id, customer_name, status, date))
+        self.clear_entries()
+
+    def update_status(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Selection Error", "Please select an order to update")
+            return
+
+        new_status = self.status_combobox.get()
+        current_values = list(self.tree.item(selected_item, "values"))
+        current_values[2] = new_status
+        self.tree.item(selected_item, values=current_values)
+        self.clear_entries()
+
+    def delete_order(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Selection Error", "Please select an order to delete")
+            return
+
+        self.tree.delete(selected_item)
+        self.clear_entries()
+
+    def clear_entries(self):
+        self.order_id_entry.delete(0, tk.END)
+        self.customer_name_entry.delete(0, tk.END)
+        self.status_combobox.current(0)
+
+if __name__ == "__main__":   # fixed __main__
+    root = tk.Tk()
+    app = OrderTrackerApp(root)
+    root.mainloop()
